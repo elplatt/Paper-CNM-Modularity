@@ -1,0 +1,44 @@
+\documentclass{article}
+
+\newcommand{\beq}{\begin{eqnarray}}
+\newcommand{\eeq}{\end{eqnarray}}
+
+\begin{document}
+
+The Clauset-Newman-Moore (CNM) community detection algorithm \cite{clauset_finding_2004}
+greedily maximizes the {\em modularity} $Q$ by repeatedly merging smaller communities.
+The orginal presentation is given for an unweighted, undirected network with no self-loops.
+This paper derives analogoous equations for weighted networks with self-loops,
+both directed and undirected.
+
+Throughout this paper, $A_{vw}$ refers to an entry in the adjacency matrix of a network.
+Each end of an {\em edge} connects to a {\em vertex},
+which can be the same vertex for both edges in the case of a self-loop.
+A {\em stub} is one half of an edge, and is associated with single vertex.
+Each edge has a {\em weight}, with $m$ refering to the total edge weight.
+In an {\em undirected} network, edges are symmetric with respect to vertices.
+In a {\em directed} network, the edge is outgoing from the {\em source} vertex
+and incident upon the {\em sink} vertex.
+Respectively, the degree $k_v$, in-degree $k_v^{(in)}$, and out-degree $k_v^{(out)}$ refer to the
+sum of adjacent edge weights, sum of incident edges, and sum of outgoing edges.
+The term $\delta_{ij}$ is equal to 1 if $i = j$ and 0 otherwise.
+
+\section{Undirected}
+In an undirected network, modularity is defined as:
+\beq
+\label{eq:modularity} Q &=& \frac{1}{2m} \sum_{v,w} \left[ A_{vw} (1 + \delta_{vw}) - \frac{k_v k_w}{2m} \right]\delta_{c_v c_w} \\
+m &=& \frac{1}{2} \sum_{v,w} A_{vw} (1 + \delta_{vw}),
+\eeq
+where $m$ is the total number of edges is the network.
+Equation \ref{eq:modularity} differs from \cite{clauset_finding_2004} by the inclusion of a $\delta_{vw}$ term.
+This term is necessary when self-loops are present,
+because unlike off-diagonal entries, diagonal entries represent two stubs.
+
+\begin{thebibliography}{1}
+\bibitem{clauset_finding_2004} 
+Aaron Clauset, M. E. J. Newman, and Christopher Moore.
+\textit{Finding community structure in very large networks}. 
+Physical review E 70(6):066111, 2004.
+\end{thebibliography}
+
+\end{document}
