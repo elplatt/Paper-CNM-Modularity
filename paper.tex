@@ -5,7 +5,12 @@
 \newcommand{\beq}{\begin{eqnarray}}
 \newcommand{\eeq}{\end{eqnarray}}
 
+\title{CNM Community Detection for General Networks}
+\author{Edward L. Platt\\ed@elplatt.com}
+
 \begin{document}
+
+\maketitle
 
 The Clauset-Newman-Moore (CNM) community detection algorithm \cite{clauset_finding_2004}
 greedily maximizes the {\em modularity} $Q$ by repeatedly merging smaller communities.
@@ -36,7 +41,7 @@ In an undirected network, modularity is defined as:
 \label{eq:modularity} Q &=& \frac{1}{2m} \sum_{vw} \left[ A_{vw} (1 + \delta_{vw}) - \frac{k_v k_w}{2m} \right]\delta_{c_v c_w} \\
 m &=& \frac{1}{2} \sum_{vw} A_{vw} (1 + \delta_{vw}),
 \eeq
-where $m$ is the total number of edges is the network and $c_v$ is the community containing vertex $v$.
+where $m$ is the total weight of edges is the network and $c_v$ is the community containing vertex $v$.
 Equation \ref{eq:modularity} differs from \cite{clauset_finding_2004} by the inclusion of a $\delta_{vw}$ term.
 This term is necessary when self-loops are present,
 because unlike off-diagonal entries, each diagonal entry represents two stubs.
@@ -100,6 +105,85 @@ as follows:
 \Delta^\prime_{jk} &=& e_{jk}^\prime - 2 a_j^\prime a_k^\prime \\
 &=& e_{ik} + e_{jk} - 2 a_k ( a_i + a_j) \\
 &=& e_{ik} - 2 a_i a_k + e_{jk} - 2 a_j a_k \\
+&=& \Delta_{ik} + \Delta_{jk}.
+\eeq
+Note that if there is no edge between $i$ and $k$,
+the value of $\Delta_{ik}$ can be determined directly from $a_i$ and $a_k$
+(the same applies to $\Delta_{jk}$).
+
+
+\section{Directed}
+In a directed network, $A_{vw}$ is the weight of the edge from $v$ to $w$.
+The modularity is defined as:
+\beq
+\label{eq:modularity} Q &=& \frac{1}{m} \sum_{vw} \left[ A_{vw} - \frac{k_v^{out} k_w^{in}}{m} \right]\delta_{c_v c_w} \\
+m &=& \sum_{vw} A_{vw},
+\eeq
+where $m$ is the total weight of edges is the network and $c_v$ is the community containing vertex $v$.
+
+The in and out degrees of vertex $v$ are given by:
+\beq
+k_v^{in} &=& \sum_i A_{iv} \\
+k_v^{out} &=& \sum_i A_{vi}.
+\eeq
+The fraction of edge weight from community $i$ to community $j$ is given by:
+\beq
+e_{ij} &=& \frac{1}{m}\sum_{vw} A_{vw} \delta_{c_vi}\delta_{c_wj}.
+\eeq
+The fraction of source weight within community $i$ is given by:
+\beq
+a_i &=& \frac{1}{m}\sum_{vw}A_{vw} \delta_{c_vi} \\
+&=& \frac{1}{m}\sum_v k_v^{out} \delta_{c_vi}.
+\eeq
+The fraction of target weight within community $i$ is given by:
+\beq
+b_i &=& \frac{1}{m}\sum_{vw}A_{vw} \delta_{c_wi} \\
+&=& \frac{1}{m}\sum_v k_v^{in} \delta_{c_vi}.
+\eeq
+
+Writing the modularity in terms of $e_{ij}$, $a_i$, and $b_i$ by using
+$\delta_{c_vc_w} = \sum_i \delta_{c_vi}\delta{c_wi}$:
+\beq
+Q &=& \frac{1}{m} \sum_{ivw} \left[ A_{vw} - \frac{k_v^{out} k_w^{in}}{m} \right]\delta_{c_v i}\delta_{c_w i} \\
+&=& \sum_i \frac{1}{m} \sum_{vw}A_{vw}\delta_{c_v i}\delta_{c_w i}
+- \sum_i \left(\sum_{vw} \frac{k_v^{out}}{m}\delta_{c_v i} \right)
+\left(\sum_{vw} \frac{k_w^{in}}{m}\delta_{c_w i} \right) \\
+&=& \sum_i \left( e_{ii} - a_ib_i \right).
+\eeq
+
+When community $i$ is merged into community $j$, the edge fractions and stub
+fractions are updated according to:
+\beq
+e_{ii}^\prime &=& 0 \\
+e_{jj}^\prime &=& e_{ii} + e_{jj} + e_{ij} + e_{ji}\\
+e_{jk}^\prime &=& e_{ik} + e_{jk} \; \text{(if $j \neq k$)}\\
+a_i^\prime &=& 0 \\
+a_j^\prime &=& a_i + a_j \\
+b_i^\prime &=& 0 \\
+b_j^\prime &=& b_i + b_j.
+\eeq
+The change in modularity for merging communities $i$ and $j$ are given by:
+\beq
+\Delta_{ij} &=& \left( e_{jj}^\prime - a_j^\prime b_j^\prime \right)
+- \left(e_{ii} + e_{jj} - a_i b_i - a_j b_j \right) \\
+&=&
+e_{ij} + e_{ji} - a_i b_j - a_j b_i.
+\eeq
+Initially, each vertex is in its own community ($c_v = v$)
+and the values of $\Delta_{ij}$ and $a_i$ are:
+\beq
+\Delta^{(0)}_{ij} &=& \frac{1}{m}\left[ A_{ij} + A_{ji} - \frac{k_i^{out} k_j^{in} + k_i^{in} k_j^{out}}{m}\right] \\
+a_i^{(0)} &=& \frac{k_i^{out}}{m} \\
+b_i^{(0)} &=& \frac{k_i^{in}}{m}.
+\eeq
+
+When community $i$ is merged into $j$, the values of $\Delta$ are updated
+as follows:
+\beq
+\Delta^\prime_{jk}
+&=& e_{jk}^\prime + e_{kj}^\prime - a_j^\prime b_k^\prime - a_k^\prime b_j^\prime \\
+&=& e_{ik} + e_{jk} + e_{ki} + e_{kj} - a_i b_k - a_j b_k - a_k b_i - a_k b_j \\
+&=& (e_{ik} + e_{ki} - a_i b_k - a_k b_i) + (e_{jk} + e_{kj} - a_j b_k - a_k b_j) \\
 &=& \Delta_{ik} + \Delta_{jk}.
 \eeq
 Note that if there is no edge between $i$ and $k$,
